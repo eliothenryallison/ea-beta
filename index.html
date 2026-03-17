@@ -542,6 +542,7 @@ function resetHomeInput(){
   passwordMode = false;
   passwordBuffer = "";
   pendingProjectKey = null;
+  if(mobileInput) mobileInput.value = "";
   const ht = document.getElementById("homeText");
   if(ht) ht.textContent = "";
 }
@@ -574,37 +575,31 @@ function startPasswordPrompt(projectKey){
     if(!inHome()) return;
 
     const raw = mobileInput.value || "";
-    const submitted = raw.includes("\n") || raw.includes("\r");
-    const cleaned = raw.replace(/[\n\r]/g, "");
+    const submitted = /[
+]/.test(raw);
+    const cleaned = raw.replace(/[
+]/g, "");
 
-    // Keep the textarea value in sync so iOS backspace behaves properly
     if(mobileInput.value !== cleaned) mobileInput.value = cleaned;
 
     if(passwordMode){
       passwordBuffer = cleaned;
       updatePasswordDisplay();
-      if(submitted){
-        submitPassword();
-      }
+      if(submitted) submitPassword();
     } else {
       homeBuffer = cleaned;
       syncHomeDisplay();
-      if(submitted){
-        submitCommand();
-      }
+      if(submitted) submitCommand();
     }
   });
 
   mobileInput.addEventListener("keydown", (e) => {
     if(!inHome()) return;
-    // On some browsers keydown still fires for Enter before input; support both
     if(e.key === "Enter"){
       e.preventDefault();
-      if(passwordMode){
-        submitPassword();
-      } else {
-        submitCommand();
-      }
+      if(passwordMode) submitPassword();
+      else submitCommand();
+      return;
     }
   });
 
@@ -616,7 +611,7 @@ function startPasswordPrompt(projectKey){
   });
 }
 
-document.addEventListener("keydown"document.addEventListener("keydown", (e) => {
+document.addEventListener("keydown", (e) => {
   if(!inHome()) return;
   if(mobileInput && document.activeElement === mobileInput) return;
   if(e.ctrlKey || e.metaKey || e.altKey) return;
