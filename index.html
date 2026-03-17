@@ -526,6 +526,16 @@ document.getElementById("logoHome").addEventListener("click", (e) => {
   e.preventDefault();
   resetHomeInput();
   location.hash = "#home";
+  setTimeout(() => {
+    const ht = document.getElementById("homeText");
+    if(mobileInput && typeof mobileInput.focus === "function"){
+      mobileInput.focus();
+    } else if(ht && typeof ht.focus === "function"){
+      ht.focus();
+    } else if(document.activeElement && typeof document.activeElement.blur === "function"){
+      document.activeElement.blur();
+    }
+  }, 0);
 });
 
 document.getElementById("logoHome").addEventListener("keydown", (e) => {
@@ -533,6 +543,16 @@ document.getElementById("logoHome").addEventListener("keydown", (e) => {
     e.preventDefault();
     resetHomeInput();
     location.hash = "#home";
+    setTimeout(() => {
+      const ht = document.getElementById("homeText");
+      if(mobileInput && typeof mobileInput.focus === "function"){
+        mobileInput.focus();
+      } else if(ht && typeof ht.focus === "function"){
+        ht.focus();
+      } else if(document.activeElement && typeof document.activeElement.blur === "function"){
+        document.activeElement.blur();
+      }
+    }, 0);
   }
 });
 
