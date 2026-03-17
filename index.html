@@ -55,7 +55,7 @@
     z-index:20; user-select:none;
   }
   #menu .logoRow{ display:flex; align-items:center; gap:10px; }
-  #menu img{ width:28px; height:28px; object-fit:contain; display:block; }
+  #menu img{ width:28px; height:28px; object-fit:contain; display:block; cursor:pointer; }
   .rule{ margin:10px 0; opacity:0.6; }
   .menuLink{ display:block; padding:2px 4px; }
 
@@ -152,7 +152,7 @@
 </video>
 
 <div id="menu" aria-label="menu">
-  <div class="logoRow">
+  <div class="logoRow" id="logoHome" role="button" tabindex="0" aria-label="home">
     <img src="logo.jpeg" alt="logo" />
   </div>
 
@@ -520,6 +520,21 @@ function route(){
 }
 
 window.addEventListener("hashchange", route);
+
+
+document.getElementById("logoHome").addEventListener("click", (e) => {
+  e.preventDefault();
+  resetHomeInput();
+  location.hash = "#home";
+});
+
+document.getElementById("logoHome").addEventListener("keydown", (e) => {
+  if(e.key === "Enter" || e.key === " "){
+    e.preventDefault();
+    resetHomeInput();
+    location.hash = "#home";
+  }
+});
 
 document.getElementById("linkCv").addEventListener("click", (e) => {
   if((location.hash || "#home").toLowerCase() === "#cv"){
