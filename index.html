@@ -174,7 +174,7 @@
   <pre id="stream"></pre>
 </div>
 
-<textarea id="mobileInput" aria-label="terminal input"></textarea>
+<textarea id="mobileInput" aria-label="terminal input" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" inputmode="text"></textarea>
 
 <script>
 const ENTRIES = [
@@ -570,74 +570,41 @@ function startPasswordPrompt(projectKey){
   streamEl.appendChild(document.createTextNode("\n"));
   appendCursor();
   if(mobileInput){
-    mobileInput.value = "";
-    setTimeout(() => mobileInput.focus(), 0);
-  }
-}
-
-function updatePasswordDisplay(){
-  const el = document.getElementById("passwordText");
-  if(el) el.textContent = "*".repeat(passwordBuffer.length);
-}
-
-
-function syncHomeDisplay(){
-  const ht = document.getElementById("homeText");
-  if(ht) ht.textContent = homeBuffer;
-}
-
-if(mobileInput){
-  mobileInput.addEventListener("input", (e) => {
+  mobileInput.addEventListener("input", () => {
     if(!inHome()) return;
-    const raw = mobileInput.value.replace(/\n/g, "");
+
+    const raw = mobileInput.value || "";
+    const submitted = raw.includes("\n") || raw.includes("\r");
+    const cleaned = raw.replace(/[\n\r]/g, "");
+
+    // Keep the textarea value in sync so iOS backspace behaves properly
+    if(mobileInput.value !== cleaned) mobileInput.value = cleaned;
+
     if(passwordMode){
-      passwordBuffer = raw;
+      passwordBuffer = cleaned;
       updatePasswordDisplay();
+      if(submitted){
+        submitPassword();
+      }
     } else {
-      homeBuffer = raw;
+      homeBuffer = cleaned;
       syncHomeDisplay();
+      if(submitted){
+        submitCommand();
+      }
     }
   });
 
   mobileInput.addEventListener("keydown", (e) => {
     if(!inHome()) return;
+    // On some browsers keydown still fires for Enter before input; support both
     if(e.key === "Enter"){
       e.preventDefault();
-
       if(passwordMode){
-        const project = pendingProjectKey ? PROJECTS[pendingProjectKey] : null;
-        if(project && passwordBuffer === project.password){
-          const key = pendingProjectKey;
-          resetHomeInput();
-          location.hash = "#project-" + encodeURIComponent(key);
-        } else {
-          showHome();
-        }
-        return;
+        submitPassword();
+      } else {
+        submitCommand();
       }
-
-      const cmd = homeBuffer.trim().toLowerCase();
-
-      if(cmd === "cv"){
-        resetHomeInput();
-        location.hash = "#cv";
-        return;
-      }
-      if(cmd === "contact"){
-        resetHomeInput();
-        location.hash = "#contact";
-        return;
-      }
-      if(PROJECTS[cmd]){
-        resetHomeInput();
-        startPasswordPrompt(cmd);
-        return;
-      }
-
-      if(homeEraseTimer) clearTimeout(homeEraseTimer);
-      homeEraseTimer = setTimeout(() => {
-        resetHomeInput();
-      }, 10000);
     }
   });
 
@@ -649,8 +616,9 @@ if(mobileInput){
   });
 }
 
-document.addEventListener("keydown", (e) => {
+document.addEventListener("keydown"document.addEventListener("keydown", (e) => {
   if(!inHome()) return;
+  if(mobileInput && document.activeElement === mobileInput) return;
   if(e.ctrlKey || e.metaKey || e.altKey) return;
 
   if(passwordMode){
@@ -663,14 +631,7 @@ document.addEventListener("keydown", (e) => {
 
     if(e.key === "Enter"){
       e.preventDefault();
-      const project = pendingProjectKey ? PROJECTS[pendingProjectKey] : null;
-      if(project && passwordBuffer === project.password){
-        const key = pendingProjectKey;
-        resetHomeInput();
-        location.hash = "#project-" + encodeURIComponent(key);
-      } else {
-        showHome();
-      }
+      submitPassword();
       return;
     }
 
@@ -693,29 +654,7 @@ document.addEventListener("keydown", (e) => {
 
   if(e.key === "Enter"){
     e.preventDefault();
-    const cmd = homeBuffer.trim().toLowerCase();
-
-    if(cmd === "cv"){
-      resetHomeInput();
-      location.hash = "#cv";
-      return;
-    }
-    if(cmd === "contact"){
-      resetHomeInput();
-      location.hash = "#contact";
-      return;
-    }
-    if(PROJECTS[cmd]){
-      homeBuffer = "";
-      ht.textContent = "";
-      startPasswordPrompt(cmd);
-      return;
-    }
-
-    if(homeEraseTimer) clearTimeout(homeEraseTimer);
-    homeEraseTimer = setTimeout(() => {
-      resetHomeInput();
-    }, 10000);
+    submitCommand();
     return;
   }
 
