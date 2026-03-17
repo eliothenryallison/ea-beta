@@ -571,35 +571,88 @@ function startPasswordPrompt(projectKey){
   streamEl.appendChild(document.createTextNode("\n"));
   appendCursor();
   if(mobileInput){
-  mobileInput.addEventListener("input", () => {
+    mobileInput.value = "";
+    setTimeout(() => mobileInput.focus(), 0);
+  }
+}
+
+function updatePasswordDisplay(){
+  const el = document.getElementById("passwordText");
+  if(el) el.textContent = "*".repeat(passwordBuffer.length);
+}
+
+
+function syncHomeDisplay(){
+  const ht = document.getElementById("homeText");
+  if(ht) ht.textContent = homeBuffer;
+}
+
+if(mobileInput){
+  mobileInput.addEventListener("input", (e) => {
     if(!inHome()) return;
-
-    const raw = mobileInput.value || "";
-    const submitted = /[
-]/.test(raw);
-    const cleaned = raw.replace(/[
-]/g, "");
-
+    const cleaned = (mobileInput.value || "").replace(/[\n\r]/g, "");
     if(mobileInput.value !== cleaned) mobileInput.value = cleaned;
 
     if(passwordMode){
       passwordBuffer = cleaned;
       updatePasswordDisplay();
-      if(submitted) submitPassword();
     } else {
       homeBuffer = cleaned;
       syncHomeDisplay();
-      if(submitted) submitCommand();
     }
+    e.stopPropagation();
   });
 
   mobileInput.addEventListener("keydown", (e) => {
     if(!inHome()) return;
+
     if(e.key === "Enter"){
       e.preventDefault();
-      if(passwordMode) submitPassword();
-      else submitCommand();
+      e.stopPropagation();
+
+      if(passwordMode){
+        const project = pendingProjectKey ? PROJECTS[pendingProjectKey] : null;
+        if(project && passwordBuffer === project.password){
+          const key = pendingProjectKey;
+          resetHomeInput();
+          location.hash = "#project-" + encodeURIComponent(key);
+        } else {
+          showHome();
+        }
+        return;
+      }
+
+      const cmd = homeBuffer.trim().toLowerCase();
+
+      if(cmd === "cv"){
+        resetHomeInput();
+        location.hash = "#cv";
+        return;
+      }
+      if(cmd === "contact"){
+        resetHomeInput();
+        location.hash = "#contact";
+        return;
+      }
+      if(PROJECTS[cmd]){
+        homeBuffer = "";
+        const ht = document.getElementById("homeText");
+        if(ht) ht.textContent = "";
+        mobileInput.value = "";
+        startPasswordPrompt(cmd);
+        return;
+      }
+
+      if(homeEraseTimer) clearTimeout(homeEraseTimer);
+      homeEraseTimer = setTimeout(() => {
+        resetHomeInput();
+      }, 10000);
       return;
+    }
+
+    if(e.key === "Backspace"){
+      // Let iOS update the textarea, then mirror it on the next input event.
+      e.stopPropagation();
     }
   });
 
@@ -626,7 +679,14 @@ document.addEventListener("keydown", (e) => {
 
     if(e.key === "Enter"){
       e.preventDefault();
-      submitPassword();
+      const project = pendingProjectKey ? PROJECTS[pendingProjectKey] : null;
+      if(project && passwordBuffer === project.password){
+        const key = pendingProjectKey;
+        resetHomeInput();
+        location.hash = "#project-" + encodeURIComponent(key);
+      } else {
+        showHome();
+      }
       return;
     }
 
@@ -649,7 +709,29 @@ document.addEventListener("keydown", (e) => {
 
   if(e.key === "Enter"){
     e.preventDefault();
-    submitCommand();
+    const cmd = homeBuffer.trim().toLowerCase();
+
+    if(cmd === "cv"){
+      resetHomeInput();
+      location.hash = "#cv";
+      return;
+    }
+    if(cmd === "contact"){
+      resetHomeInput();
+      location.hash = "#contact";
+      return;
+    }
+    if(PROJECTS[cmd]){
+      homeBuffer = "";
+      ht.textContent = "";
+      startPasswordPrompt(cmd);
+      return;
+    }
+
+    if(homeEraseTimer) clearTimeout(homeEraseTimer);
+    homeEraseTimer = setTimeout(() => {
+      resetHomeInput();
+    }, 10000);
     return;
   }
 
