@@ -214,7 +214,7 @@ const ENTRIES = [
 ];
 
 const CONTACT_LINES = [
-  "eliothenryallison@gmail.com"
+  '<a href="mailto:eliothenryallison@gmail.com">eliothenryallison@gmail.com</a>'
 ];
 
 const PROJECTS = {
@@ -405,7 +405,7 @@ function typeLines(lines){
     }
     const span = document.createElement("span");
     span.className = "entry";
-    span.textContent = lines[i++];
+    span.innerHTML = lines[i++];
     streamEl.insertBefore(span, cursorEl());
     streamEl.insertBefore(document.createTextNode("\n\n"), cursorEl());
   }, ms);
