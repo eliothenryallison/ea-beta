@@ -131,6 +131,13 @@
     color:inherit;
   }
 
+
+.projectSubtitle{
+  opacity:0.6;
+  font-size:0.9em;
+  letter-spacing:0.01em;
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -220,7 +227,7 @@ const CONTACT_LINES = [
 const PROJECTS = {
   "friendly pickle jingle": {
     displayTitle: "ea.001_FRIENDLY_PICKLE_JINGLE",
-    password: "1234",
+    password: "pickled",
     updates: [
       {
         date: "2026_03_26_offers",
@@ -452,7 +459,7 @@ function showProject(project){
   revealIndex = 0;
   const nodes = [];
 
-  nodes.push(htmlEntry('<span class="projectTitle">'+escHtml(project.displayTitle)+'</span>'));
+  nodes.push(htmlEntry('<span class="projectTitle">'+escHtml(project.displayTitle)+'</span><br><span class="projectSubtitle">project log</span>'));
 
   for(const update of project.updates){
     const parts = [];
